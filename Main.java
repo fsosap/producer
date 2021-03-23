@@ -83,7 +83,8 @@ public class Main {
                     "\n 3. List existing queues" +
                     "\n 4. Push tasks" +
                     "\n 5. My user information" +
-                    "\n 6. Exit");
+                    "\n 6. Exit" +
+                    "\n if you want to exit from an option write option at the parameter");
             option = 0;
             do {
                 try {
@@ -134,19 +135,19 @@ public class Main {
                         }
                         message = "";
                         Random rand = new Random();
-                        String taskId = "TASK #" + rand.nextInt(100);
-                        String emailSender = "Email sender:" + email;
-                        System.out.println(taskId);
-                        System.out.println(emailSender);
+                        String taskId = "[{\"TASK #\":\"" + rand.nextInt(100) + "\"},";
+                        String emailSender = "{\"Email sender\":\"" + email + "\"},";
                         message = message.concat(taskId);
                         message = message.concat(emailSender);
-                        System.out.println("Task/Message to push on the queue:");
+                        System.out.println("Task/Message to push on the queue:(just 1 line, press enter and send a \".\")");
                         user.nextLine();
-                        message = message.concat("Message:");
+                        message = message.concat("[{\"Message:\":\"");
                         while (!user.nextLine().equals(".")) {
                             message = message.concat(user.nextLine());
                         }
+                        message = message.concat("\"}]");
                         message = message.replace(" ", "+");
+                        System.out.println(message);
                         needsAuth = true;
                         httpMethod = "PUT";
                     } while (!pushTask(message, queueName));
