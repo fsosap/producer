@@ -1,12 +1,10 @@
-import com.sun.deploy.net.HttpRequest;
-
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
@@ -17,52 +15,66 @@ public class Main {
 
     public static void main(String[] args) {
         boolean exitObserver = false;
-        // write your code here
+
         Scanner user = new Scanner(System.in);
-        System.out.println("Welcome." + "\n" + "Please select the number of your option:" +
-                "\n 1. Login" +
-                "\n 2. Register" +
-                "\n 3. Exit");
-        int option = 0;
-        do {
-            try {
-                option = user.nextInt();
-            } catch (Exception e) {
-                System.out.println("Remember to enter the number, not the the text");
-                user.nextLine();
-            }
-        } while (option > 3 || option < 1);
-        System.out.println("Option #" + option + " selected");
         String username;
         String password;
         String email = "";
-        switch (option) {
-            case 1:
-                do {
-                    System.out.print("email:");
-                    email = user.next();
-                    System.out.print("password:");
-                    password = user.next();
-                    needsAuth = false;
-                    httpMethod = "POST";
-                } while (!login(email, password));
+        int option = 0;
+        while (true) {
+            System.out.println("Welcome." + "\n" + "Please select the number of your option:" +
+                    "\n 1. Login" +
+                    "\n 2. Register");
+            do {
+                try {
+                    option = user.nextInt();
+                } catch (Exception e) {
+                    System.out.println("Remember to enter the number, not the the text");
+                    user.nextLine();
+                }
+            } while (option > 2 || option < 1);
+            System.out.println("Option #" + option + " selected");
+            switch (option) {
+                case 1:
+                    System.out.println("EXIT? (if yes, write yes and press enter button)");
+                    if (user.next().equals("yes")) {
+                        exitObserver = false;
+                        break;
+                    }
+                    do {
+                        System.out.print("email:");
+                        email = user.next();
+                        System.out.print("password:");
+                        password = user.next();
+                        needsAuth = false;
+                        httpMethod = "POST";
+                    } while (!login(email, password));
+                    exitObserver = true;
+                    break;
+                case 2:
+                    System.out.println("EXIT?");
+                    if (user.next().equals("yes")) {
+                        exitObserver = false;
+                        break;
+                    }
+                    do {
+                        System.out.print("username:");
+                        username = user.next();
+                        System.out.print("email:");
+                        email = user.next();
+                        System.out.print("password:");
+                        password = user.next();
+                        needsAuth = false;
+                        httpMethod = "POST";
+                    } while (!register(username, email, password));
+                    exitObserver = true;
+                    break;
+            }
+            if (exitObserver) {
                 break;
-            case 2:
-                do {
-                    System.out.print("username:");
-                    username = user.next();
-                    System.out.print("email:");
-                    email = user.next();
-                    System.out.print("password:");
-                    password = user.next();
-                    needsAuth = false;
-                    httpMethod = "POST";
-                } while (!register(username, email, password));
-                break;
-            case 3:
-                System.out.println("good bye");
-                break;
+            }
         }
+        exitObserver = false;
         System.out.println("Hello, " + email);
         while (true) {
             System.out.println("\n please select one of the following options:" +
@@ -88,6 +100,9 @@ public class Main {
                     do {
                         System.out.print("Name of the queue to create:");
                         queueName = user.next();
+                        if (queueName.equals("exit")) {
+                            break;
+                        }
                         needsAuth = true;
                         httpMethod = "POST";
                     } while (!createQueue(queueName));
@@ -96,6 +111,9 @@ public class Main {
                     do {
                         System.out.print("Name of the queue to remove:");
                         queueName = user.next();
+                        if (queueName.equals("exit")) {
+                            break;
+                        }
                         needsAuth = true;
                         httpMethod = "DELETE";
                     } while (!removeQueue(queueName));
@@ -111,9 +129,23 @@ public class Main {
                     do {
                         System.out.println("Name of the queue:");
                         queueName = user.next();
+                        if (queueName.equals("exit")) {
+                            break;
+                        }
+                        message = "";
+                        Random rand = new Random();
+                        String taskId = "TASK #" + rand.nextInt(100);
+                        String emailSender = "Email sender:" + email;
+                        System.out.println(taskId);
+                        message = message.concat(taskId);
+                        message = message.concat(emailSender);
                         System.out.println("Task/Message to push on the queue:");
                         user.nextLine();
-                        message = user.nextLine();
+                        message = message.concat("Message:");
+                        while (!user.nextLine().equals(".")) {
+                            message = message.concat(user.nextLine());
+                        }
+                        message = message.replace(" ", "+");
                         needsAuth = true;
                         httpMethod = "PUT";
                     } while (!pushTask(message, queueName));
@@ -139,10 +171,10 @@ public class Main {
         try {
             StringBuilder tokenUri = new StringBuilder("name=");
             tokenUri.append(URLEncoder.encode(name, "UTF-8"));
-            URL url = new URL("http://localhost:8000/api/queue/create");
+            URL url = new URL("http://54.164.144.28/api/queue/create");
             sendRequest(url, tokenUri);
         } catch (Exception e) {
-            System.err.print("Error at the creation of the queue:" + e);
+            System.out.print("Error at the creation of the queue:" + e);
             return false;
         }
         return true;
@@ -150,11 +182,11 @@ public class Main {
 
     static boolean getUserInfo() {
         try {
-            StringBuilder tokenUri = new StringBuilder("http://localhost:8000/api/user-info");
+            StringBuilder tokenUri = new StringBuilder("http://54.164.144.28/api/user-info");
             URL url = new URL(tokenUri.toString());
             sendGetRequest(url);
         } catch (Exception e) {
-            System.err.println("Your information wasn't found -> Error:" + e);
+            System.out.println("Your information wasn't found -> Error:" + e);
             return false;
         }
         return true;
@@ -162,11 +194,11 @@ public class Main {
 
     static boolean listQueues() {
         try {
-            StringBuilder tokenUri = new StringBuilder("http://localhost:8000/api/queue/list");
+            StringBuilder tokenUri = new StringBuilder("http://54.164.144.28/api/queue/list");
             URL url = new URL(tokenUri.toString());
             sendGetRequest(url);
         } catch (Exception e) {
-            System.err.println("Error at listing existing queues:" + e);
+            System.out.println("Error at listing existing queues:" + e);
             return false;
         }
         return true;
@@ -180,10 +212,10 @@ public class Main {
             tokenUri.append(URLEncoder.encode(email, "UTF-8"));
             tokenUri.append("&password=");
             tokenUri.append(URLEncoder.encode(password, "UTF-8"));
-            URL url = new URL("http://localhost:8000/api/login");
+            URL url = new URL("http://54.164.144.28/api/login");
             sendRequest(url, tokenUri);
         } catch (Exception e) {
-            System.err.println("You made a mistake -> Error:" + e);
+            System.out.println("You made a mistake -> Error:" + e);
             return false;
         }
         return true;
@@ -191,11 +223,11 @@ public class Main {
 
     static boolean pushTask(String message, String queueName) {
         try {
-            String link = "http://localhost:8000/api/queue/push?queue=" + queueName + "&body=" + message;
+            String link = "http://54.164.144.28/api/queue/push?queue=" + queueName + "&body=" + message;
             URL url = new URL(link);
             sendPutRequest(url);
         } catch (Exception e) {
-            System.err.println("Error at sending the task:" + e);
+            System.out.println("Error at sending the task:" + e);
             return false;
         }
         return true;
@@ -211,10 +243,10 @@ public class Main {
             tokenUri.append(URLEncoder.encode(email, "UTF-8"));
             tokenUri.append("&password=");
             tokenUri.append(URLEncoder.encode(password, "UTF-8"));
-            URL url = new URL("http://localhost:8000/api/register");
+            URL url = new URL("http://54.164.144.28/api/register");
             sendRequest(url, tokenUri);
         } catch (Exception e) {
-            System.err.print("Te enrollment fail ->Error:" + e);
+            System.out.println("Te enrollment fail ->Error:" + e);
             return false;
         }
         return true;
@@ -224,10 +256,10 @@ public class Main {
         try {
             StringBuilder tokenUri = new StringBuilder("name=");
             tokenUri.append(URLEncoder.encode(name, "UTF-8"));
-            URL url = new URL("http://localhost:8000/api/queue/delete");
+            URL url = new URL("http://54.164.144.28/api/queue/delete");
             sendRequest(url, tokenUri);
         } catch (Exception e) {
-            System.err.println("Error at the removing of the queue:" + e);
+            System.out.println("Error at the removing of the queue:" + e);
             return false;
         }
         return true;
