@@ -137,6 +137,7 @@ public class Main {
                         String taskId = "TASK #" + rand.nextInt(100);
                         String emailSender = "Email sender:" + email;
                         System.out.println(taskId);
+                        System.out.println(emailSender);
                         message = message.concat(taskId);
                         message = message.concat(emailSender);
                         System.out.println("Task/Message to push on the queue:");
